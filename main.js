@@ -1,26 +1,26 @@
+const fs = require('fs');
 const https = require('https');
 const crypto = require('crypto');
 const yaml = require('js-yaml');
-const fs = require('fs');
 const urlencoder = require('urlencode');
 
 var settings = yaml.safeLoad(fs.readFileSync('settings.yml', 'utf8'));
 
-let salt = crypto.randomBytes(8).toString('hex');
+let salt = crypto.randomBytes(16).toString('hex');
 let text = process.argv.splice(2);
-let str = settings.appid
+let keyStr = settings.appid
     + text
     + salt
     + settings.appkey;
 
-let key = crypto.createHash('md5').update(str).digest().toString('hex').toUpperCase();
+let key = crypto.createHash('md5').update(keyStr).digest().toString('hex').toUpperCase();
 
 const options = {
     hostname: 'openapi.youdao.com',
-    path: '/api?q=' + urlencoder(text) 
-    + '&from=auto&to=auto&appKey=' + settings.appid
-    + '&salt=' + urlencoder(salt) 
-    + '&sign=' + urlencoder(key),
+    path: '/api?q=' + urlencoder(text)
+        + '&from=auto&to=auto&appKey=' + settings.appid
+        + '&salt=' + urlencoder(salt)
+        + '&sign=' + urlencoder(key),
     method: 'GET',
     headers: {
     }
