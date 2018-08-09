@@ -33,7 +33,7 @@ const req = https.request(options, (res) => {
     res.on('data', (chunk) => {
         let result = JSON.parse(chunk);
         if (!result.basic) {
-            console.log(JSON.stringify(result));
+            console.log(`Error Code: ${result.errorCode}`);
             console.log('No result');
             return;
         }
