@@ -23,6 +23,7 @@ const options = {
         + '&sign=' + urlencoder(key),
     method: 'GET',
     headers: {
+        Content: 'text/plain'
     }
 };
 
