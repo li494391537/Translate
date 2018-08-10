@@ -8,19 +8,19 @@ var settings = yaml.safeLoad(fs.readFileSync('settings.yml', 'utf8'));
 
 let salt = crypto.randomBytes(16).toString('hex');
 let text = process.argv.splice(2);
-let keyStr = settings.appid
-    + text
-    + salt
-    + settings.appkey;
+let keyStr = settings.appid +
+    text +
+    salt +
+    settings.appkey;
 
 let key = crypto.createHash('md5').update(keyStr).digest().toString('hex').toUpperCase();
 
 const options = {
     hostname: 'openapi.youdao.com',
-    path: '/api?q=' + urlencoder(text)
-        + '&from=auto&to=auto&appKey=' + settings.appid
-        + '&salt=' + urlencoder(salt)
-        + '&sign=' + urlencoder(key),
+    path: '/api?q=' + urlencoder(text) +
+        '&from=auto&to=auto&appKey=' + settings.appid +
+        '&salt=' + urlencoder(salt) +
+        '&sign=' + urlencoder(key),
     method: 'GET',
     headers: {
         Content: 'text/plain'
@@ -28,29 +28,33 @@ const options = {
 };
 
 const req = https.request(options, (res) => {
-    console.log(`STATUS: ${res.statusCode}`);
-    console.log(`HEADERS: ${JSON.stringify(res.headers)}\n`);
+    //console.log(`STATUS: ${res.statusCode}`);
+    //console.log(`HEADERS: ${JSON.stringify(res.headers)}\n`);
     res.setEncoding('utf8');
     res.on('data', (chunk) => {
         let result = JSON.parse(chunk);
-        if (!result.basic) {
+        if (result.errorCode != 0) {
             console.log(`Error Code: ${result.errorCode}`);
-            console.log('No result');
             return;
         }
-        let dict = result.dict;
-        let explains = result.basic.explains;
-        let us = result.basic['us-phonetic'];
-        let uk = result.basic['uk-phonetic'];
-
-        console.log(`US: [${us}], UK: [${uk}]`)
-        explains.forEach((item) => {
-            console.log(item);
-        })
+        if (result.basic) {
+            let ukPhonetic = result.basic['uk-phonetic'];
+            let usPhonetic = result.basic['us-phonetic'];
+            if (ukPhonetic) console.log(`UK: /${ukPhonetic}/`);
+            if (usPhonetic) console.log(`US: /${usPhonetic}/`);
+            let explains = result.basic.explains;
+            if (explains) {
+                let i = 1;
+                explains.forEach((explain) => {
+                    console.log(`[${i}] ${explain}`);
+                    i += 1;
+                });
+            }
+        }
     });
-    res.on('end', () => {
-        //console.log('No more data in response.');
-    });
+    //res.on('end', () => {
+    //    console.log('No more data in response.');
+    //});
 });
 
 req.on('error', (e) => {
